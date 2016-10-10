@@ -1,29 +1,25 @@
 import threading
 import sys
-
+from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QWidget
 from Xlib.display import Display
 from Xlib import X
 from Xlib.ext import record
 from Xlib.protocol import rq
-
-from PyQt5 import QtWidgets, QtCore, QtGui
-
 import LockStatus
 
+#Variables for Global Shortcut events
 disp = None
 disp = Display()
 root = disp.screen().root
 
-
+#Gets present lock status from LockStatus module
 caps = LockStatus.getCapsLockStaus()
 num = LockStatus.getNumLockStaus()
+ButtonClicked = 60
 
-button = 60
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
-
     def __init__(self, icon, parent=None):
         super(SystemTrayIcon, self).__init__(icon, parent)
         menu = QtWidgets.QMenu(parent)
@@ -31,87 +27,76 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         exitAction.triggered.connect(parent.close)
         self.setContextMenu(menu)
 
+
 class windows(QtWidgets.QWidget):
     def __init__(self):
         super(windows, self).__init__()
-        self.second = t2()
-        self.second.start()
-        self.second.send.connect(self.test)
+        self.gsThread = GlobalShortCutThread()
+        self.gsThread.start()
+        self.gsThread.eventCapture.connect(self.changeIcon)
 
         if caps == "on":
             self.capIcon = SystemTrayIcon(QtGui.QIcon('images/capsOn.png'),self)
             self.capIcon.show()
             self.capsCount = 1
+            self.capIcon.setToolTip("Caps Lock On")
         elif caps == "off":
             self.capIcon = SystemTrayIcon(QtGui.QIcon('images/capsOff.png'), self)
             self.capIcon.show()
             self.capsCount = 2
+            self.capIcon.setToolTip("Caps Lock Off")
 
         if num == "on":
             self.numIcon = SystemTrayIcon(QtGui.QIcon('images/numOn.png'),self)
             self.numIcon.show()
-            global numCount
             self.numCount = 1
+            self.numIcon.setToolTip("num Lock On")
 
         elif num == "off":
             self.numIcon = SystemTrayIcon(QtGui.QIcon('images/numOff.png'), self)
             self.numIcon.show()
-            global numCount
             self.numCount = 2
+            self.numIcon.setToolTip("num Lock Off")
 
-
-    def test(self):
-        if button == 66:
+    def changeIcon(self):
+        if ButtonClicked == 66:
             self.capsCount += 1
             if self.capsCount%2 == 0:
                 self.capIcon.setIcon(QtGui.QIcon('images/capsOff.png'))
+                self.capIcon.setToolTip("Caps Lock Off")
 
             else:
                 self.capIcon.setIcon(QtGui.QIcon('images/capsOn.png'))
+                self.capIcon.setToolTip("Caps Lock On")
 
-        elif button == 77:
+        elif ButtonClicked == 77:
             self.numCount += 1
             if self.numCount%2 == 0:
                 self.numIcon.setIcon(QtGui.QIcon('images/numOff.png'))
+                self.numIcon.setToolTip("num Lock Off")
             else:
                 self.numIcon.setIcon(QtGui.QIcon('images/numOn.png'))
+                self.numIcon.setToolTip("num Lock On")
 
 
-
-
-class t1(threading.Thread):
-    global window
+class GlobalShortCutThread(QtCore.QThread):
+    eventCapture = pyqtSignal()
     def run(self):
-        app = QtWidgets.QApplication([])
-        window = windows()
-        window.setWindowTitle("t1")
-        sys.exit(app.exec_())
-
-
-
-class t2(QtCore.QThread):
-    send = pyqtSignal()
-    def run(self):
-
-        class hand(QtCore.QThread):
-
-
+        class handle():
             def handler(reply):
                 """ This function is called when a xlib event is fired """
                 data = reply.data
                 while len(data):
                     event, data = rq.EventField(None).parse_binary_value(data, disp.display, None, None)
                     # KEYCODE IS FOUND USERING event.detail
-                    global button
-                    button = int(event.detail)
-
+                    global ButtonClicked
+                    ButtonClicked = int(event.detail)
                     if event.type == X.KeyPress:
                         if (event.detail == 66) or (event.detail == 77) :
-                            self.send.emit()
+                            self.eventCapture.emit()
             # get current display
             # disp = Display()
             # root = disp.screen().root
-
             # Monitor keypress and button press
             ctx = disp.record_create_context(
                 0,
@@ -127,19 +112,17 @@ class t2(QtCore.QThread):
                     'client_started': False,
                     'client_died': False,
                 }])
-
             disp.record_enable_context(ctx, handler)
             disp.record_free_context(ctx)
-
             while True:
                 # Infinite wait, doesn't do anything as no events are grabbed
                 event = root.display.next_event()
 
-
-
-
-first = t1()
-first.start()
+if __name__ == '__main__':
+    app = QtWidgets.QApplication([])
+    window = windows()
+    window.setWindowTitle("CapsNumLockIndicator")
+    sys.exit(app.exec_())
 
 
 
