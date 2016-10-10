@@ -1,6 +1,7 @@
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import QAction
 from Xlib.display import Display
 from Xlib import X
 from Xlib.ext import record
@@ -22,10 +23,20 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def __init__(self, icon, parent=None):
         super(SystemTrayIcon, self).__init__(icon, parent)
         menu = QtWidgets.QMenu(parent)
-        exitAction = menu.addAction("Exit")
+        exitAction = QAction("Exit",self)
+        exitAction.setIcon(QtGui.QIcon('images/exit.png'))
         exitAction.triggered.connect(parent.close)
+        aboutAction = QAction("About",self)
+        aboutAction.setIcon(QtGui.QIcon('images/about.png'))
+        menu.addAction(exitAction)
+        menu.addAction(aboutAction)
+        aboutAction.triggered.connect(self.about)
         self.setContextMenu(menu)
 
+    def about(self):
+        self.aboutWindow = QtWidgets.QWidget()
+
+        self.aboutWindow.show()
 
 class windows(QtWidgets.QWidget):
     def __init__(self):
