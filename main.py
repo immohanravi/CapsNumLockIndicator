@@ -1,3 +1,9 @@
+# Author: Mohan Ravi
+# Vesrion: 1.0
+# Dependencies: PyQt5, Xlib, Python3.5
+# Description: Caps and Num lock indicator using python
+# License: GPL Version 3 https://www.gnu.org/licenses/gpl-3.0.txt
+
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal
@@ -19,7 +25,7 @@ caps = LockStatus.getCapsLockStaus()
 num = LockStatus.getNumLockStaus()
 ButtonClicked = 60
 
-
+#Creates System Tray Icon using PyQt5 lib
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def __init__(self, icon, parent=None):
         super(SystemTrayIcon, self).__init__(icon, parent)
@@ -35,6 +41,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         aboutAction.triggered.connect(self.about.dis)
         self.setContextMenu(menu)
 
+#Object of file About.py which holds the code for about page user interface
 class aboutPage(QtWidgets.QWidget,about.Ui_MainWindow):
     def __init__(self, parent=None):
         super(aboutPage,self).__init__(parent)
@@ -42,7 +49,7 @@ class aboutPage(QtWidgets.QWidget,about.Ui_MainWindow):
     def dis(self):
         self.show()
 
-
+#Main Application Window which contains Tray Icons
 class windows(QtWidgets.QWidget):
     def __init__(self):
         super(windows, self).__init__()
@@ -93,7 +100,8 @@ class windows(QtWidgets.QWidget):
                 self.numIcon.setIcon(QtGui.QIcon('images/numON.png'))
                 self.numIcon.setToolTip("num Lock On")
 
-
+# The most important class in this projects which enables
+# and receives button press events even when not in focus
 class GlobalShortCutThread(QtCore.QThread):
     eventCapture = pyqtSignal()
     def run(self):
@@ -132,7 +140,7 @@ class GlobalShortCutThread(QtCore.QThread):
             while True:
                 # Infinite wait, doesn't do anything as no events are grabbed
                 event = root.display.next_event()
-
+# Initial Code
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     window = windows()
