@@ -5,15 +5,17 @@
 # License: GPL Version 3 https://www.gnu.org/licenses/gpl-3.0.txt
 
 import sys
+import threading
+
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QAction
+from PyQt5.QtWidgets import QDialog
 from Xlib.display import Display
 from Xlib import X
 from Xlib.ext import record
 from Xlib.protocol import rq
 import LockStatus
-import about
 
 #Variables for Global Shortcut events
 disp = None
@@ -33,29 +35,24 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         exitAction = QAction("Exit",self)
         exitAction.setIcon(QtGui.QIcon('images/exit.png'))
         exitAction.triggered.connect(parent.close)
-        aboutAction = QAction("About",self)
-        aboutAction.setIcon(QtGui.QIcon('images/about.png'))
         menu.addAction(exitAction)
-        menu.addAction(aboutAction)
-        self.about = aboutPage()
-        aboutAction.triggered.connect(self.about.dis)
         self.setContextMenu(menu)
 
-#Object of file About.py which holds the code for about page user interface
-class aboutPage(QtWidgets.QWidget,about.Ui_MainWindow):
-    def __init__(self, parent=None):
-        super(aboutPage,self).__init__(parent)
-        self.setupUi(self)
-    def dis(self):
-        self.show()
+class firstT(threading.Thread):
+    def run(self):
+        app = QtWidgets.QApplication([])
+        window = windows()
+        window.setWindowTitle("CapsNumLockIndicator")
+        sys.exit(app.exec_())
 
-#Main Application Window which contains Tray Icons
+# Main Application Window which contains Tray Icons
 class windows(QtWidgets.QWidget):
     def __init__(self):
         super(windows, self).__init__()
         self.gsThread = GlobalShortCutThread()
         self.gsThread.start()
         self.gsThread.eventCapture.connect(self.changeIcon)
+
 
         if caps == "on":
             self.capIcon = SystemTrayIcon(QtGui.QIcon('images/capsON.png'),self)
@@ -100,6 +97,8 @@ class windows(QtWidgets.QWidget):
                 self.numIcon.setIcon(QtGui.QIcon('images/numON.png'))
                 self.numIcon.setToolTip("num Lock On")
 
+
+
 # The most important class in this projects which enables
 # and receives button press events even when not in focus
 class GlobalShortCutThread(QtCore.QThread):
@@ -142,10 +141,8 @@ class GlobalShortCutThread(QtCore.QThread):
                 event = root.display.next_event()
 # Initial Code
 if __name__ == '__main__':
-    app = QtWidgets.QApplication([])
-    window = windows()
-    window.setWindowTitle("CapsNumLockIndicator")
-    sys.exit(app.exec_())
+    mainThread = firstT()
+    mainThread.start()
 
 
 
