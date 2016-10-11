@@ -7,6 +7,7 @@ from Xlib import X
 from Xlib.ext import record
 from Xlib.protocol import rq
 import LockStatus
+import about
 
 #Variables for Global Shortcut events
 disp = None
@@ -30,13 +31,17 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         aboutAction.setIcon(QtGui.QIcon('images/about.png'))
         menu.addAction(exitAction)
         menu.addAction(aboutAction)
-        aboutAction.triggered.connect(self.about)
+        self.about = aboutPage()
+        aboutAction.triggered.connect(self.about.dis)
         self.setContextMenu(menu)
 
-    def about(self):
-        self.aboutWindow = QtWidgets.QWidget()
+class aboutPage(QtWidgets.QWidget,about.Ui_MainWindow):
+    def __init__(self, parent=None):
+        super(aboutPage,self).__init__(parent)
+        self.setupUi(self)
+    def dis(self):
+        self.show()
 
-        self.aboutWindow.show()
 
 class windows(QtWidgets.QWidget):
     def __init__(self):
@@ -46,24 +51,24 @@ class windows(QtWidgets.QWidget):
         self.gsThread.eventCapture.connect(self.changeIcon)
 
         if caps == "on":
-            self.capIcon = SystemTrayIcon(QtGui.QIcon('images/capsOn.png'),self)
+            self.capIcon = SystemTrayIcon(QtGui.QIcon('images/capsON.png'),self)
             self.capIcon.show()
             self.capsCount = 1
             self.capIcon.setToolTip("Caps Lock On")
         elif caps == "off":
-            self.capIcon = SystemTrayIcon(QtGui.QIcon('images/capsOff.png'), self)
+            self.capIcon = SystemTrayIcon(QtGui.QIcon('images/capsOFF.png'), self)
             self.capIcon.show()
             self.capsCount = 2
             self.capIcon.setToolTip("Caps Lock Off")
 
         if num == "on":
-            self.numIcon = SystemTrayIcon(QtGui.QIcon('images/numOn.png'),self)
+            self.numIcon = SystemTrayIcon(QtGui.QIcon('images/numON.png'),self)
             self.numIcon.show()
             self.numCount = 1
             self.numIcon.setToolTip("num Lock On")
 
         elif num == "off":
-            self.numIcon = SystemTrayIcon(QtGui.QIcon('images/numOff.png'), self)
+            self.numIcon = SystemTrayIcon(QtGui.QIcon('images/numOFF.png'), self)
             self.numIcon.show()
             self.numCount = 2
             self.numIcon.setToolTip("num Lock Off")
@@ -72,20 +77,20 @@ class windows(QtWidgets.QWidget):
         if ButtonClicked == 66:
             self.capsCount += 1
             if self.capsCount%2 == 0:
-                self.capIcon.setIcon(QtGui.QIcon('images/capsOff.png'))
+                self.capIcon.setIcon(QtGui.QIcon('images/capsOFF.png'))
                 self.capIcon.setToolTip("Caps Lock Off")
 
             else:
-                self.capIcon.setIcon(QtGui.QIcon('images/capsOn.png'))
+                self.capIcon.setIcon(QtGui.QIcon('images/capsON.png'))
                 self.capIcon.setToolTip("Caps Lock On")
 
         elif ButtonClicked == 77:
             self.numCount += 1
             if self.numCount%2 == 0:
-                self.numIcon.setIcon(QtGui.QIcon('images/numOff.png'))
+                self.numIcon.setIcon(QtGui.QIcon('images/numOFF.png'))
                 self.numIcon.setToolTip("num Lock Off")
             else:
-                self.numIcon.setIcon(QtGui.QIcon('images/numOn.png'))
+                self.numIcon.setIcon(QtGui.QIcon('images/numON.png'))
                 self.numIcon.setToolTip("num Lock On")
 
 
